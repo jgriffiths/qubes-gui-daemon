@@ -210,6 +210,11 @@ static Ghandles ghandles;
 #define KDIALOG_PATH "/usr/bin/kdialog"
 #define ZENITY_PATH "/usr/bin/zenity"
 
+static const char* COLOR_PROFILES[] = {
+	0, "red", "orange", "yellow", "green", "gray", "blue", "purple", "black"
+};
+#define NUM_COLOR_PROFILES (int)(sizeof(COLOR_PROFILES)/sizeof(COLOR_PROFILES[0]))
+
 static void inter_appviewer_lock(Ghandles *g, int mode);
 static void release_mapped_mfns(Ghandles * g, struct windowdata *vm_window);
 static void print_backtrace(void);
@@ -445,6 +450,16 @@ static Window mkwindow(Ghandles * g, struct windowdata *vm_window)
 	XChangeProperty(g->display, child_win, atom_label, XA_CARDINAL,
 			8 /* 8 bit is enough */ , PropModeReplace,
 			(unsigned char *) &g->label_index, 1);
+
+	if (g->label_index) {
+		// Not a dom0 window - force KDE to use our labels color scheme
+		char tmp[64]; /* /usr/share/qubes/color-schemes/<name>.colors */
+		sprintf(tmp, "/usr/share/qubes/color-schemes/%s.colors",
+			COLOR_PROFILES[g->label_index]);
+		atom_label = XInternAtom(g->display, "_KDE_NET_WM_COLOR_SCHEME", 0);
+		XChangeProperty(g->display, child_win, atom_label, XA_STRING,
+				8, PropModeReplace, (const unsigned char *)tmp, strlen(tmp));
+	}
 
 	// Set '_QUBES_VMNAME' property so that Window Manager can read it and nicely display it
 	atom_label = XInternAtom(g->display, "_QUBES_VMNAME", 0);
@@ -2820,6 +2835,11 @@ static void parse_cmdline(Ghandles * g, int argc, char **argv)
 	}
 	if (g->domid<=0) {
 		fprintf(stderr, "domid<=0?");
+		exit(1);
+	}
+
+	if (g->label_index < 0 || g->label_index >= NUM_COLOR_PROFILES) {
+		fprintf(stderr, "label index out of range");
 		exit(1);
 	}
 
