@@ -179,6 +179,7 @@ struct _global_handles {
 	int qrexec_clipboard;	/* 0: use GUI protocol to fetch/put clipboard, 1: use qrexec */
 	int use_kdialog;	/* use kdialog for prompts (default on KDE) or zenity (default on non-KDE) */
 	int audio_low_latency; /* set low-latency mode while starting pacat-simple-vchan */
+	int set_vm_prefix; /* Set [vmname] as the prefix of the windows title */
 };
 
 typedef struct _global_handles Ghandles;
@@ -2095,7 +2096,22 @@ static void handle_wmname(Ghandles * g, struct windowdata *vm_window)
 			(int) vm_window->local_winid);
 	Xutf8TextListToTextProperty(g->display, list, 1, XUTF8StringStyle,
 				    &text_prop);
-	XSetWMName(g->display, vm_window->local_winid, &text_prop);
+	if (!g->set_vm_prefix) {
+		/* Use the window title unchanged */
+		XSetWMName(g->display, vm_window->local_winid, &text_prop);
+	} else {
+		/* Prepend the VM name */
+		XTextProperty text_prop2;
+		const size_t EXTRA_CHARS = strlen("[] ");
+		char buf2[sizeof(g->vmname) + EXTRA_CHARS + sizeof(buf)];
+		list[0] = buf2;
+
+		snprintf(buf2, sizeof(buf2), "[%s] %s", g->vmname, buf);
+		Xutf8TextListToTextProperty(g->display, list, 1, XUTF8StringStyle,
+					    &text_prop2);
+		XSetWMName(g->display, vm_window->local_winid, &text_prop2);
+		XFree(text_prop2.value);
+	}
 	XSetWMIconName(g->display, vm_window->local_winid, &text_prop);
 	XFree(text_prop.value);
 }
@@ -2780,6 +2796,7 @@ static void parse_cmdline(Ghandles * g, int argc, char **argv)
 	g->qrexec_clipboard = 0;
 	g->nofork = 0;
 	g->kill_on_connect = 0;
+	g->set_vm_prefix = 0;
 
 	optind = 1;
 
@@ -2827,6 +2844,9 @@ static void parse_cmdline(Ghandles * g, int argc, char **argv)
 			break;
 		case 'K':
 			g->kill_on_connect = strtoul(optarg, NULL, 0);
+			break;
+		case 'p':
+			g->set_vm_prefix = 1;
 			break;
 		default:
 			usage();
