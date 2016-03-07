@@ -2759,11 +2759,12 @@ static void wait_for_connection_in_parent(int *pipe_notify)
 static void usage(void)
 {
 	fprintf(stderr,
-		"usage: qubes-guid -d domain_id -N domain_name [-t target_domid] [-c color] [-l label_index] [-i icon name, no suffix, or icon.png path] [-v] [-q] [-a] [-f] [-K pid]\n");
+		"usage: qubes-guid -d domain_id -N domain_name [-t target_domid] [-c color] [-l label_index] [-i icon name, no suffix, or icon.png path] [-vqQnpafI] [-K pid]\n");
 	fprintf(stderr, "       -v  increase log verbosity\n");
 	fprintf(stderr, "       -q  decrease log verbosity\n");
 	fprintf(stderr, "       -Q  force usage of Qrexec for clipboard operations\n");
 	fprintf(stderr, "       -n  do not wait for agent connection\n");
+	fprintf(stderr, "       -p  prefix window title with \"[domain_name]\"\n");
 	fprintf(stderr, "       -a  low-latency audio mode\n");
 	fprintf(stderr, "       -f  do not fork into background\n");
 	fprintf(stderr, "       -I  run in \"invisible\" mode - do not show any VM window\n");
