@@ -2074,7 +2074,7 @@ static void fix_menu(Ghandles * g, struct windowdata *vm_window)
 		moveresize_vm_window(g, vm_window);
 }
 
-/* handle VM message: MSG_VMNAME
+/* handle VM message: MSG_WMNAME
  * remove non-printable characters and pass to X server */
 static void handle_wmname(Ghandles * g, struct windowdata *vm_window)
 {
